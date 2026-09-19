@@ -60,6 +60,11 @@ class DataService extends ChangeNotifier {
     final query = await _db.collection('leaveRequests').where('studentId', isEqualTo: studentId).get();
     return query.docs.map((doc) => LeaveRequestModel.fromJson(doc.data())).toList();
   }
+
+  Future<List<AttendanceModel>> fetchStudentAttendance(String studentId) async {
+    final query = await _db.collection('attendance').where('studentId', isEqualTo: studentId).get();
+    return query.docs.map((doc) => AttendanceModel.fromJson(doc.data())).toList();
+  }
   
   Future<void> submitLeaveRequest(LeaveRequestModel request) async {
     _isLoading = true;
@@ -157,6 +162,26 @@ class DataService extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> adminDeleteStudent(String studentId) async {
+    // Remove student from any rooms they were assigned to
+    final roomQuery = await _db.collection('rooms').where('occupantStudentIds', arrayContains: studentId).get();
+    for (var roomDoc in roomQuery.docs) {
+      final List<dynamic> occupants = roomDoc.data()['occupantStudentIds'] ?? [];
+      occupants.remove(studentId);
+      final roomCapacity = roomDoc.data()['capacity'] ?? 2;
+      String newStatus = occupants.length >= roomCapacity ? 'Full' : 'Available';
+      
+      await _db.collection('rooms').doc(roomDoc.id).update({
+        'occupantStudentIds': occupants,
+        'status': newStatus,
+      });
+    }
+    
+    // Delete the student record
+    await _db.collection('users').doc(studentId).delete();
+    notifyListeners();
+  }
+
   Future<List<RoomModel>> fetchAllRooms() async {
     final query = await _db.collection('rooms').get();
     return query.docs.map((doc) => RoomModel.fromJson(doc.data())).toList();
@@ -233,6 +258,42 @@ class DataService extends ChangeNotifier {
         markedByAdminId: 'A1001',
       ).toJson());
     }
+    notifyListeners();
+  }
+
+  Future<void> adminMarkAllPresent(DateTime date) async {
+    _isLoading = true;
+    notifyListeners();
+    try {
+      final studentsQuery = await _db.collection('users').where('role', isEqualTo: 'student').get();
+      final activeStudents = studentsQuery.docs.map((d) => StudentModel.fromJson(d.data())).where((s) => s.roomNumber != null && s.roomNumber!.isNotEmpty).toList();
+
+      final attendanceQuery = await _db.collection('attendance').get();
+      final existingRecords = attendanceQuery.docs.map((d) => AttendanceModel.fromJson(d.data())).where((a) => a.date.year == date.year && a.date.month == date.month && a.date.day == date.day).toList();
+      final markedStudentIds = existingRecords.map((a) => a.studentId).toSet();
+
+      final unmarkedStudents = activeStudents.where((s) => !markedStudentIds.contains(s.id)).toList();
+
+      if (unmarkedStudents.isNotEmpty) {
+        WriteBatch batch = _db.batch();
+        for (var student in unmarkedStudents) {
+          // Generate a unique ID using timestamp and student ID to prevent collisions in batch
+          final id = 'ATT${DateTime.now().millisecondsSinceEpoch}_${student.id}';
+          final docRef = _db.collection('attendance').doc(id);
+          batch.set(docRef, AttendanceModel(
+            id: id,
+            studentId: student.id,
+            date: date,
+            status: AttendanceStatus.present,
+            markedByAdminId: 'A1001',
+          ).toJson());
+        }
+        await batch.commit();
+      }
+    } catch (e) {
+      debugPrint("Error marking all present: $e");
+    }
+    _isLoading = false;
     notifyListeners();
   }
 

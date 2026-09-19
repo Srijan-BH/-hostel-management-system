@@ -110,24 +110,26 @@ class _ServiceRequestsScreenState extends State<ServiceRequestsScreen> {
           builder: (context, setDialogState) {
             return AlertDialog(
               title: const Text('Request Service'),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  DropdownButtonFormField<String>(
-                    value: selectedType,
-                    items: ['Room Cleaning', 'Laundry', 'Carpentry', 'Pest Control'].map((c) {
-                      return DropdownMenuItem(value: c, child: Text(c));
-                    }).toList(),
-                    onChanged: (val) => setDialogState(() => selectedType = val!),
-                    decoration: const InputDecoration(labelText: 'Service Type'),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: descCtrl,
-                    decoration: const InputDecoration(labelText: 'Description/Notes'),
-                    maxLines: 3,
-                  ),
-                ],
+              content: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    DropdownButtonFormField<String>(
+                      value: selectedType,
+                      items: ['Room Cleaning', 'Laundry', 'Carpentry', 'Pest Control'].map((c) {
+                        return DropdownMenuItem(value: c, child: Text(c));
+                      }).toList(),
+                      onChanged: (val) => setDialogState(() => selectedType = val!),
+                      decoration: const InputDecoration(labelText: 'Service Type'),
+                    ),
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: descCtrl,
+                      decoration: const InputDecoration(labelText: 'Description/Notes'),
+                      maxLines: 3,
+                    ),
+                  ],
+                ),
               ),
               actions: [
                 TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),

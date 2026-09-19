@@ -6,6 +6,7 @@ import 'package:hostel_management_system/presentation/widgets/responsive_scaffol
 import 'package:hostel_management_system/models/student_model.dart';
 import 'package:hostel_management_system/models/fee_model.dart';
 import 'package:hostel_management_system/models/notice_model.dart';
+import 'package:hostel_management_system/models/attendance_model.dart';
 import 'package:hostel_management_system/presentation/screens/auth/role_selection_screen.dart';
 
 import 'package:hostel_management_system/presentation/screens/student/profile_screen.dart';
@@ -29,6 +30,7 @@ class StudentDashboardScreen extends StatefulWidget {
 class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
   late Future<List<FeeModel>> _feesFuture;
   late Future<List<NoticeModel>> _noticesFuture;
+  late Future<List<AttendanceModel>> _attendanceFuture;
 
   @override
   void initState() {
@@ -39,6 +41,7 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
     
     _feesFuture = dataService.fetchStudentFees(studentId);
     _noticesFuture = dataService.fetchNotices();
+    _attendanceFuture = dataService.fetchStudentAttendance(studentId);
   }
 
   void _logout() {
@@ -153,7 +156,34 @@ class _StudentDashboardScreenState extends State<StudentDashboardScreen> {
                   childAspectRatio: 1.5,
                   children: [
                     _DashboardCard(title: 'Room', value: roomString, icon: Icons.meeting_room, color: Colors.blue),
-                    _DashboardCard(title: 'Attendance', value: 'No Data', icon: Icons.co_present, color: Colors.green),
+                    FutureBuilder<List<AttendanceModel>>(
+                      future: _attendanceFuture,
+                      builder: (context, snapshot) {
+                        String attendanceText = 'No Data';
+                        if (snapshot.connectionState == ConnectionState.waiting) {
+                          attendanceText = '...';
+                        } else if (snapshot.hasData && snapshot.data!.isNotEmpty) {
+                          // Find today's attendance
+                          final today = DateTime.now();
+                          final todayRecords = snapshot.data!.where((a) => a.date.year == today.year && a.date.month == today.month && a.date.day == today.day);
+                          if (todayRecords.isNotEmpty) {
+                            final status = todayRecords.first.status;
+                            attendanceText = status.name.toUpperCase();
+                          } else {
+                            // Calculate overall percentage
+                            final present = snapshot.data!.where((a) => a.status == AttendanceStatus.present).length;
+                            final total = snapshot.data!.length;
+                            attendanceText = '${((present / total) * 100).toStringAsFixed(0)}%';
+                          }
+                        }
+                        return _DashboardCard(
+                          title: 'Attendance', 
+                          value: attendanceText, 
+                          icon: Icons.co_present, 
+                          color: Colors.green
+                        );
+                      }
+                    ),
                     
                     FutureBuilder<List<FeeModel>>(
                       future: _feesFuture,

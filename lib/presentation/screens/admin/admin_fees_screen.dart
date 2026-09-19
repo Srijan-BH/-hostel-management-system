@@ -39,28 +39,31 @@ class _AdminFeesScreenState extends State<AdminFeesScreen> {
         builder: (context, setStateSB) {
           return AlertDialog(
             title: const Text('Issue New Fee'),
-            content: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                DropdownButtonFormField<String>(
-                  value: selectedStudentId,
-                  items: students.map((s) => DropdownMenuItem(value: s.id, child: Text('${s.name} (${s.roomNumber ?? "No Room"})'))).toList(),
-                  onChanged: (val) => setStateSB(() => selectedStudentId = val),
-                  decoration: const InputDecoration(labelText: 'Select Student'),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: amountCtrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(labelText: 'Amount (₹)', prefixText: '₹'),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: descCtrl,
-                  decoration: const InputDecoration(labelText: 'Description'),
-                ),
-              ],
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  DropdownButtonFormField<String>(
+                    isExpanded: true,
+                    value: selectedStudentId,
+                    items: students.map((s) => DropdownMenuItem(value: s.id, child: Text('${s.name} (${s.roomNumber ?? "No Room"})'))).toList(),
+                    onChanged: (val) => setStateSB(() => selectedStudentId = val),
+                    decoration: const InputDecoration(labelText: 'Select Student'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: amountCtrl,
+                    keyboardType: TextInputType.number,
+                    decoration: const InputDecoration(labelText: 'Amount (₹)', prefixText: '₹'),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: descCtrl,
+                    decoration: const InputDecoration(labelText: 'Description'),
+                  ),
+                ],
+              ),
             ),
             actions: [
               TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),

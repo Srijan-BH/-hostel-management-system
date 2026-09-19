@@ -114,32 +114,46 @@ class ProfileScreen extends StatelessWidget {
     final phoneCtrl = TextEditingController(text: current.phoneNumber == 'Pending Update' ? '' : current.phoneNumber);
     final gNameCtrl = TextEditingController(text: current.guardianName == 'Pending Update' ? '' : current.guardianName);
     final gContactCtrl = TextEditingController(text: current.guardianContact == 'Pending Update' ? '' : current.guardianContact);
+    final courseCtrl = TextEditingController(text: current.course == 'Not Assigned' ? '' : current.course);
+    final yearCtrl = TextEditingController(text: current.yearSemester);
 
     showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
           title: const Text('Edit Profile'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: phoneCtrl,
-                decoration: const InputDecoration(labelText: 'Your Phone Number'),
-                keyboardType: TextInputType.phone,
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: gNameCtrl,
-                decoration: const InputDecoration(labelText: 'Guardian Name'),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: gContactCtrl,
-                decoration: const InputDecoration(labelText: 'Guardian Contact'),
-                keyboardType: TextInputType.phone,
-              ),
-            ],
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: courseCtrl,
+                  decoration: const InputDecoration(labelText: 'Course (e.g. B.Tech CS)'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: yearCtrl,
+                  decoration: const InputDecoration(labelText: 'Year/Semester (e.g. 1st Year)'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: phoneCtrl,
+                  decoration: const InputDecoration(labelText: 'Your Phone Number'),
+                  keyboardType: TextInputType.phone,
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: gNameCtrl,
+                  decoration: const InputDecoration(labelText: 'Guardian Name'),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: gContactCtrl,
+                  decoration: const InputDecoration(labelText: 'Guardian Contact'),
+                  keyboardType: TextInputType.phone,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
@@ -150,8 +164,8 @@ class ProfileScreen extends StatelessWidget {
                   email: current.email,
                   name: current.name,
                   phoneNumber: phoneCtrl.text.trim().isEmpty ? 'Pending Update' : phoneCtrl.text.trim(),
-                  course: current.course,
-                  yearSemester: current.yearSemester,
+                  course: courseCtrl.text.trim().isEmpty ? 'Not Assigned' : courseCtrl.text.trim(),
+                  yearSemester: yearCtrl.text.trim().isEmpty ? '1st Year' : yearCtrl.text.trim(),
                   roomNumber: current.roomNumber,
                   bedNumber: current.bedNumber,
                   hostelBlock: current.hostelBlock,

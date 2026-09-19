@@ -42,6 +42,33 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
       appBar: AppBar(
         title: const Text('Attendance Management'),
         automaticallyImplyLeading: false,
+        actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.done_all, color: Colors.white),
+            label: const Text('Mark All Present', style: TextStyle(color: Colors.white)),
+            onPressed: () async {
+              // Show confirmation dialog
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Mark All Present'),
+                  content: Text('Mark all unmarked students as Present for ${DateFormat('MMM d').format(_selectedDate)}?'),
+                  actions: [
+                    TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                    FilledButton(onPressed: () => Navigator.pop(context, true), child: const Text('Confirm')),
+                  ],
+                ),
+              );
+              
+              if (confirm == true && mounted) {
+                await context.read<DataService>().adminMarkAllPresent(_selectedDate);
+                setState(() => _loadData());
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('All unmarked students marked as Present.')));
+              }
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Column(
         children: [
@@ -96,48 +123,65 @@ class _AdminAttendanceScreenState extends State<AdminAttendanceScreen> {
                     final status = record?.status;
 
                     return Card(
-                      margin: const EdgeInsets.only(bottom: 8.0),
-                      child: ListTile(
-                        leading: CircleAvatar(child: Text(student.name[0])),
-                        title: Text(student.name),
-                        subtitle: Text('Room ${student.roomNumber}-${student.bedNumber}'),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
+                      margin: const EdgeInsets.only(bottom: 12.0),
+                      child: Padding(
+                        padding: const EdgeInsets.all(12.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            ChoiceChip(
-                              label: const Text('Present'),
-                              selected: status == AttendanceStatus.present,
-                              selectedColor: Colors.green.shade200,
-                              onSelected: (val) async {
-                                if (val) {
-                                  await context.read<DataService>().adminMarkAttendance(student.id, _selectedDate, AttendanceStatus.present);
-                                  setState(() => _loadData());
-                                }
-                              },
+                            Row(
+                              children: [
+                                CircleAvatar(child: Text(student.name.isNotEmpty ? student.name[0] : 'S')),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(student.name.isEmpty ? 'Unknown' : student.name, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16)),
+                                      Text('Room ${student.roomNumber}-${student.bedNumber}', style: const TextStyle(color: Colors.grey)),
+                                    ],
+                                  ),
+                                ),
+                              ],
                             ),
-                            const SizedBox(width: 8),
-                            ChoiceChip(
-                              label: const Text('Absent'),
-                              selected: status == AttendanceStatus.absent,
-                              selectedColor: Colors.red.shade200,
-                              onSelected: (val) async {
-                                if (val) {
-                                  await context.read<DataService>().adminMarkAttendance(student.id, _selectedDate, AttendanceStatus.absent);
-                                  setState(() => _loadData());
-                                }
-                              },
-                            ),
-                            const SizedBox(width: 8),
-                            ChoiceChip(
-                              label: const Text('Leave'),
-                              selected: status == AttendanceStatus.onLeave,
-                              selectedColor: Colors.orange.shade200,
-                              onSelected: (val) async {
-                                if (val) {
-                                  await context.read<DataService>().adminMarkAttendance(student.id, _selectedDate, AttendanceStatus.onLeave);
-                                  setState(() => _loadData());
-                                }
-                              },
+                            const SizedBox(height: 12),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                ChoiceChip(
+                                  label: const Text('Present'),
+                                  selected: status == AttendanceStatus.present,
+                                  selectedColor: Colors.green.shade200,
+                                  onSelected: (val) async {
+                                    if (val) {
+                                      await context.read<DataService>().adminMarkAttendance(student.id, _selectedDate, AttendanceStatus.present);
+                                      setState(() => _loadData());
+                                    }
+                                  },
+                                ),
+                                ChoiceChip(
+                                  label: const Text('Absent'),
+                                  selected: status == AttendanceStatus.absent,
+                                  selectedColor: Colors.red.shade200,
+                                  onSelected: (val) async {
+                                    if (val) {
+                                      await context.read<DataService>().adminMarkAttendance(student.id, _selectedDate, AttendanceStatus.absent);
+                                      setState(() => _loadData());
+                                    }
+                                  },
+                                ),
+                                ChoiceChip(
+                                  label: const Text('Leave'),
+                                  selected: status == AttendanceStatus.onLeave,
+                                  selectedColor: Colors.orange.shade200,
+                                  onSelected: (val) async {
+                                    if (val) {
+                                      await context.read<DataService>().adminMarkAttendance(student.id, _selectedDate, AttendanceStatus.onLeave);
+                                      setState(() => _loadData());
+                                    }
+                                  },
+                                ),
+                              ],
                             ),
                           ],
                         ),

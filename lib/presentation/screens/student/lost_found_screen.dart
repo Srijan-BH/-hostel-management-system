@@ -140,22 +140,29 @@ class _LostFoundScreenState extends State<LostFoundScreen> {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                       children: [
-                        Expanded(
-                          child: RadioListTile<LostFoundType>(
-                            title: const Text('Lost'),
-                            value: LostFoundType.lost,
-                            groupValue: selectedType,
-                            onChanged: (val) => setDialogState(() => selectedType = val!),
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Radio<LostFoundType>(
+                              value: LostFoundType.lost,
+                              groupValue: selectedType,
+                              onChanged: (val) => setDialogState(() => selectedType = val!),
+                            ),
+                            const Text('Lost'),
+                          ],
                         ),
-                        Expanded(
-                          child: RadioListTile<LostFoundType>(
-                            title: const Text('Found'),
-                            value: LostFoundType.found,
-                            groupValue: selectedType,
-                            onChanged: (val) => setDialogState(() => selectedType = val!),
-                          ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Radio<LostFoundType>(
+                              value: LostFoundType.found,
+                              groupValue: selectedType,
+                              onChanged: (val) => setDialogState(() => selectedType = val!),
+                            ),
+                            const Text('Found'),
+                          ],
                         ),
                       ],
                     ),

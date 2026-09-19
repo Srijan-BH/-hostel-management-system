@@ -35,13 +35,15 @@ class _AdminStudentsScreenState extends State<AdminStudentsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add Student manually'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Full Name')),
-            TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email Address')),
-            TextField(controller: courseController, decoration: const InputDecoration(labelText: 'Course (e.g. B.Tech CS)')),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameController, decoration: const InputDecoration(labelText: 'Full Name')),
+              TextField(controller: emailController, decoration: const InputDecoration(labelText: 'Email Address')),
+              TextField(controller: courseController, decoration: const InputDecoration(labelText: 'Course (e.g. B.Tech CS)')),
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
@@ -169,46 +171,89 @@ class _AdminStudentsScreenState extends State<AdminStudentsScreen> {
                     final student = students[index];
                     final isAssigned = student.roomNumber != null && student.roomNumber!.isNotEmpty;
 
-                    return Card(
-                      margin: const EdgeInsets.only(bottom: 12.0),
-                      elevation: 1,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        leading: CircleAvatar(
-                          backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-                          child: Text(
-                            student.name.isNotEmpty ? student.name[0].toUpperCase() : 'S',
-                            style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer),
+                    return Dismissible(
+                      key: Key(student.id),
+                      direction: DismissDirection.endToStart,
+                      background: Container(
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 20),
+                        margin: const EdgeInsets.only(bottom: 12.0),
+                        child: const Icon(Icons.delete, color: Colors.white),
+                      ),
+                      confirmDismiss: (direction) async {
+                        return await showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Delete Student'),
+                            content: Text('Are you sure you want to delete this student from the system?'),
+                            actions: [
+                              TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Cancel')),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context, true), 
+                                child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                              ),
+                            ],
                           ),
-                        ),
-                        title: Text(student.name, style: const TextStyle(fontWeight: FontWeight.bold)),
-                        subtitle: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const SizedBox(height: 4),
-                            Text(student.email, style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(Icons.meeting_room, size: 14, color: isAssigned ? Colors.green : Colors.orange),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isAssigned ? 'Room: ${student.roomNumber}-${student.bedNumber ?? ""}' : 'Unassigned',
-                                  style: TextStyle(color: isAssigned ? Colors.green.shade700 : Colors.orange.shade700, fontSize: 12),
-                                ),
-                              ],
+                        );
+                      },
+                      onDismissed: (direction) async {
+                        try {
+                          await context.read<DataService>().adminDeleteStudent(student.id);
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Student deleted')));
+                          }
+                        } catch (e) {
+                          if (mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+                            setState(() => _loadStudents()); // Reload to restore the item
+                          }
+                        }
+                      },
+                      child: Card(
+                        margin: const EdgeInsets.only(bottom: 12.0),
+                        elevation: 1,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        child: ListTile(
+                          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                          leading: CircleAvatar(
+                            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+                            child: Text(
+                              student.name.isNotEmpty ? student.name[0].toUpperCase() : '?',
+                              style: TextStyle(color: Theme.of(context).colorScheme.onPrimaryContainer),
                             ),
-                          ],
+                          ),
+                          title: Text(student.name.isEmpty ? 'Unknown Student' : student.name, style: const TextStyle(fontWeight: FontWeight.bold)),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const SizedBox(height: 4),
+                              Text(student.email.isEmpty ? 'No email' : student.email, style: TextStyle(color: Colors.grey.shade700, fontSize: 13)),
+                              const SizedBox(height: 4),
+                              Row(
+                                children: [
+                                  Icon(Icons.meeting_room, size: 14, color: isAssigned ? Colors.green : Colors.orange),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    isAssigned ? 'Room: ${student.roomNumber}-${student.bedNumber ?? ""}' : 'Unassigned',
+                                    style: TextStyle(color: isAssigned ? Colors.green.shade700 : Colors.orange.shade700, fontSize: 12),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          trailing: IconButton(
+                            icon: const Icon(Icons.meeting_room),
+                            tooltip: 'Assign Room',
+                            onPressed: () => _showAssignRoomDialog(student),
+                          ),
+                          onTap: () {
+                            // View details
+                          },
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.meeting_room),
-                          tooltip: 'Assign Room',
-                          onPressed: () => _showAssignRoomDialog(student),
-                        ),
-                        onTap: () {
-                          // View details
-                        },
                       ),
                     );
                   },

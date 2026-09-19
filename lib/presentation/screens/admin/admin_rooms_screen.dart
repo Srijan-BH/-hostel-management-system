@@ -49,13 +49,15 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Add New Room'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(controller: blockController, decoration: const InputDecoration(labelText: 'Hostel Block (e.g. Block A)')),
-            TextField(controller: roomNumController, decoration: const InputDecoration(labelText: 'Room Number (e.g. 101)')),
-            TextField(controller: capacityController, decoration: const InputDecoration(labelText: 'Capacity (e.g. 2)'), keyboardType: TextInputType.number),
-          ],
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: blockController, decoration: const InputDecoration(labelText: 'Hostel Block (e.g. Block A)')),
+              TextField(controller: roomNumController, decoration: const InputDecoration(labelText: 'Room Number (e.g. 101)')),
+              TextField(controller: capacityController, decoration: const InputDecoration(labelText: 'Capacity (e.g. 2)'), keyboardType: TextInputType.number),
+            ],
+          ),
         ),
         actions: [
           TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
@@ -149,7 +151,7 @@ class _AdminRoomsScreenState extends State<AdminRoomsScreen> {
                   padding: const EdgeInsets.all(16),
                   gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
                     maxCrossAxisExtent: 300,
-                    childAspectRatio: 1.2,
+                    mainAxisExtent: 160,
                     crossAxisSpacing: 16,
                     mainAxisSpacing: 16,
                   ),

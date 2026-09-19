@@ -23,24 +23,26 @@ class _SettingsScreenState extends State<SettingsScreen> {
       builder: (context) {
         return AlertDialog(
           title: const Text('Change Password'),
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                decoration: InputDecoration(labelText: 'Current Password'),
-                obscureText: true,
-              ),
-              SizedBox(height: 16),
-              TextField(
-                decoration: InputDecoration(labelText: 'New Password'),
-                obscureText: true,
-              ),
-              SizedBox(height: 16),
-              TextField(
-                decoration: InputDecoration(labelText: 'Confirm New Password'),
-                obscureText: true,
-              ),
-            ],
+          content: const SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  decoration: InputDecoration(labelText: 'Current Password'),
+                  obscureText: true,
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(labelText: 'New Password'),
+                  obscureText: true,
+                ),
+                SizedBox(height: 16),
+                TextField(
+                  decoration: InputDecoration(labelText: 'Confirm New Password'),
+                  obscureText: true,
+                ),
+              ],
+            ),
           ),
           actions: [
             TextButton(
@@ -186,33 +188,44 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // LANGUAGE & LOCALIZATION
           const _SectionHeader(title: 'Language & Localization'),
           Card(
-            child: ListTile(
-              leading: const Icon(Icons.language),
-              title: const Text('App Language'),
-              trailing: DropdownButton<String>(
-                value: _selectedLanguage,
-                underline: const SizedBox(),
-                items: [
-                  'English', 
-                  'Hindi (हिन्दी)', 
-                  'Bengali (বাংলা)', 
-                  'Telugu (తెలుగు)', 
-                  'Marathi (मराठी)', 
-                  'Tamil (தமிழ்)', 
-                  'Urdu (اردو)', 
-                  'Gujarati (ગુજરાતી)', 
-                  'Kannada (ಕನ್ನಡ)', 
-                  'Odia (ଓଡ଼ିଆ)', 
-                  'Malayalam (മലയാളം)', 
-                  'Punjabi (ਪੰਜਾਬੀ)'
-                ].map((lang) {
-                  return DropdownMenuItem(value: lang, child: Text(lang));
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() => _selectedLanguage = val);
-                  }
-                },
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+              child: Row(
+                children: [
+                  const Icon(Icons.language),
+                  const SizedBox(width: 16),
+                  const Text('App Language', style: TextStyle(fontSize: 16)),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: DropdownButton<String>(
+                      isExpanded: true,
+                      value: _selectedLanguage,
+                      underline: const SizedBox(),
+                      alignment: Alignment.centerRight,
+                      items: [
+                        'English', 
+                        'Hindi (हिन्दी)', 
+                        'Bengali (বাংলা)', 
+                        'Telugu (తెలుగు)', 
+                        'Marathi (मराठी)', 
+                        'Tamil (தமிழ்)', 
+                        'Urdu (اردو)', 
+                        'Gujarati (ગુજરાતી)', 
+                        'Kannada (ಕನ್ನಡ)', 
+                        'Odia (ଓଡ଼ିଆ)', 
+                        'Malayalam (മലയാളം)', 
+                        'Punjabi (ਪੰਜਾਬੀ)'
+                      ].map((lang) {
+                        return DropdownMenuItem(value: lang, child: Text(lang));
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setState(() => _selectedLanguage = val);
+                        }
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
