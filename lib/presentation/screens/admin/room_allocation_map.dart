@@ -46,6 +46,19 @@ class _RoomAllocationMapState extends State<RoomAllocationMap> {
             _selectedBlock = blocks.first;
           }
 
+          if (blocks.isEmpty) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(Icons.meeting_room_outlined, size: 64, color: Colors.grey.shade400),
+                  const SizedBox(height: 16),
+                  Text('No rooms available to allocate.', style: TextStyle(color: Colors.grey.shade600, fontSize: 16)),
+                ],
+              ),
+            );
+          }
+
           final blockRooms = rooms.where((r) => r.hostelBlock == _selectedBlock).toList();
           blockRooms.sort((a, b) => a.roomNumber.compareTo(b.roomNumber));
 

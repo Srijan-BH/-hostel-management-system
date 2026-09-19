@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:hostel_management_system/services/auth_service.dart';
 import 'package:hostel_management_system/services/data_service.dart';
 import 'package:hostel_management_system/presentation/widgets/responsive_scaffold.dart';
@@ -31,8 +32,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
   late Future<int> _availableRoomsFuture;
   late Future<int> _pendingLeavesFuture;
   late Future<int> _openComplaintsFuture;
-  late Future<List<RoomModel>> _roomsFuture;
-  late Future<List<FeeModel>> _feesFuture;
 
   @override
   void initState() {
@@ -42,8 +41,6 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
     _availableRoomsFuture = dataService.getAvailableRoomsCount();
     _pendingLeavesFuture = dataService.getPendingLeavesCount();
     _openComplaintsFuture = dataService.getOpenComplaintsCount();
-    _roomsFuture = dataService.fetchAllRooms();
-    _feesFuture = dataService.adminFetchAllFees();
   }
 
   void _logout(BuildContext context) {
@@ -178,14 +175,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             const Text('Room Occupancy', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
                             Expanded(
-                              child: FutureBuilder<List<RoomModel>>(
-                                future: _roomsFuture,
+                              child: StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance.collection('rooms').snapshots(),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                                  final rooms = snapshot.data!;
+                                  final rooms = snapshot.data!.docs.map((doc) => RoomModel.fromJson(doc.data() as Map<String, dynamic>)).toList();
                                   int fullCount = rooms.where((r) => r.occupantStudentIds.length >= r.capacity).length;
                                   int availCount = rooms.length - fullCount;
-                                  if (rooms.isEmpty) return const Text('No Rooms Data');
+                                  if (rooms.isEmpty) return const Center(child: Text('No Rooms Data'));
+                                  if (availCount == 0 && fullCount == 0) return const Center(child: Text('No Rooms'));
                                   return PieChart(
                                     PieChartData(
                                       sectionsSpace: 0,
@@ -214,15 +212,15 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                             const Text('Fee Collection (₹)', style: TextStyle(fontWeight: FontWeight.bold)),
                             const SizedBox(height: 16),
                             Expanded(
-                              child: FutureBuilder<List<FeeModel>>(
-                                future: _feesFuture,
+                              child: StreamBuilder<QuerySnapshot>(
+                                stream: FirebaseFirestore.instance.collection('fees').snapshots(),
                                 builder: (context, snapshot) {
                                   if (!snapshot.hasData) return const Center(child: CircularProgressIndicator());
-                                  final fees = snapshot.data!;
+                                  final fees = snapshot.data!.docs.map((doc) => FeeModel.fromJson(doc.data() as Map<String, dynamic>)).toList();
                                   double totalExpected = fees.fold(0.0, (sum, f) => sum + f.totalAmount);
                                   double totalPaid = fees.fold(0.0, (sum, f) => sum + f.paidAmount);
                                   double totalPending = totalExpected - totalPaid;
-                                  if (totalExpected == 0) return const Text('No Fee Data');
+                                  if (totalExpected == 0) return const Center(child: Text('No Fee Data'));
                                   
                                   return BarChart(
                                     BarChartData(
